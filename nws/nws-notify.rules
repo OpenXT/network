@@ -1,0 +1,1 @@
+SUBSYSTEM=="net",  RUN+="/etc/network-daemon/scripts/nw_notify $env{ACTION} $env{INTERFACE}"

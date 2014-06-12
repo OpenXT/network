@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# Copyright (c) 2013 Citrix Systems, Inc.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+DOMSTORE_PATH=/leases/<DOMSTORE_KEY>
+SCRIPTNAME="$0"
+
+get_leases() {
+	db-ls-dom0 "$DOMSTORE_PATH"|sed '1d'|cut -f2 -d \"
+}
+
+update_lease() {
+	logger "$SCRIPTNAME: updating lease '$3 $1 $2 * *'"
+	db-write-dom0 "$DOMSTORE_PATH/$2" "$3 $1 $2 * *"
+}
+remove_lease() {
+	logger "$SCRIPTNAME: removing lease for $1"
+	db-remove-dom0 "$DOMSTORE_PATH/$1"
+}
+
+logger "$SCRIPTNAME: invoked with: $@"
+case "$1" in
+	add|old)
+		update_lease "$2" "$3" "$DNSMASQ_LEASE_EXPIRES"
+	;;
+	del)
+		remove_lease "$3"
+	;;
+	init)
+		get_leases
+	;;
+	*)
+		logger "$SCRIPTNAME: unknow command $1"
+	;;
+esac

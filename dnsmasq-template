@@ -1,0 +1,17 @@
+interface=<IFACE>
+bind-interfaces
+no-dhcp-interface=lo
+except-interface=lo
+resolv-file=<RESOLV_CONF_PATH>/<RESOLV_CONF>
+
+dnsout-interface=<DNSOUT_IFACE>
+
+dhcp-lease-max=90
+dhcp-range=<DHCP_RANGE_START>,<DHCP_RANGE_END>,100d
+dhcp-leasefile=/tmp/leases.<IFACE>
+dhcp-option=3,<BRSHARED_IP> # router
+dhcp-option=6,<BRSHARED_IP> # dns
+dhcp-option=1,255.255.255.0 # subnet masq
+
+dhcp-script=/etc/dnsmasq-config/dnsmasq_script.<IFACE>
+leasefile-ro

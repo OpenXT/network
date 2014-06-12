@@ -1,0 +1,33 @@
+Name:       network-slave
+Synopsis:   
+Version:    0.1
+Cabal-Version:  >= 1.2
+Author:     
+Stability:  experimental
+Build-Type: Simple
+License:    GPL
+
+Executable network-slave
+  Build-Depends:
+    base,
+    time,
+    deepseq,
+    containers,
+    haskell98,
+    process,
+    unix,
+    text,
+    mtl,
+    network,
+    bytestring,
+    utf8-string,
+    filepath,
+    regex-posix,
+    hsyslog,
+    xchutils,
+    xchxenstore,
+    xch-rpc,
+    directory
+  Main-Is: Main.hs
+  GHC-Options -O2 -fwarn-incomplete-patterns -dynamic -threaded
+
