@@ -107,7 +107,7 @@ wifiQueryNm domid slaveNw =  do
        else do 
                let wifiAp = WifiAp {apAuth = authMode apInfo
                              , apSsid = B.unpack $ BC.pack $ M.findWithDefault "" eACTIVE_AP_SSID apInfo
-                             , apEssid = "XenClient Wireless"
+                             , apEssid = "OpenXT Wireless"
                              , apMac  = M.findWithDefault "" eACTIVE_AP_HWADDRESS apInfo
                              , apFreq = (read (M.findWithDefault "246200" eACTIVE_AP_FREQUENCY apInfo) :: Int)  * 1000
                              , apMaxBitrate = read (M.findWithDefault "0" eACTIVE_AP_MAXBITRATE apInfo) :: Int
@@ -152,7 +152,7 @@ wifiXsExportFakeGsmAp domid =
     activeApPath domid = "/local/domain/" ++ (show domid) ++ "/wlan/0"
     ap = WifiAp { apAuth = NoAuth
                 , apSsid = [0x6A,0x65,0x64,0x74,0x65,0x73,0x74,0x36]
-                , apEssid = "XenClient Wireless"
+                , apEssid = "OpenXT Wireless"
                 , apMac  = "02:DE:1A:AD:BE:EF"
                 , apFreq = 2462000
                 , apMaxBitrate = 0
