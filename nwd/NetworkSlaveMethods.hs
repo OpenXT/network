@@ -117,12 +117,10 @@ getStubdomConfig domid devid backendDomid= do
        other -> return Nothing
 
 domWithStubdom domid = do 
-    vmName <- xsRead $ printf "/local/domain/%d/name" domid
-    case vmName of
-         Just name -> 
-             case (name `matchG` "stubdom-([0-9]+)") of
-                  [x] -> return $ Just x
-                  otherwise -> return Nothing
+    vmDomid <- xsRead $ printf "/local/domain/%d/target" domid
+    case vmDomid of
+         Just domid -> return $ Just domid 
+         otherwise -> return Nothing
 
 domAndDevIdFromVif vif = vif `matchG` "vif([0-9]+)\\.([0-9]+)"
 
