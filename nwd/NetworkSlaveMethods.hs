@@ -156,10 +156,10 @@ xsVifRemove :: String -> String -> IO ()
 xsVifRemove gDomid gDevid = xsRm $ printf "/local/domain/%s/device/vif/%s" gDomid gDevid
 
 xenopsDelVifCmd :: String -> String -> String -> String
-xenopsDelVifCmd = printf "xenops del_vif -netty DriverDomain -domid %s -backend-domid %s -devid %s" 
+xenopsDelVifCmd domid backend devid = printf "xl network-detach %s %s" domid devid
 
 xenopsAddVifCmd :: (String -> String -> String -> String -> String)
-xenopsAddVifCmd =  printf "xenops add_vif -netty DriverDomain -domid %s -backend-domid %s -mac %s -devid %s"
+xenopsAddVifCmd domid backend mac devid = printf "xl network-attach %s type=vif mac=%s backend=%s" domid mac backend
 
 xsBackendVifNode :: String -> String
 xsBackendVifNode = printf "/local/domain/%s/backend/vif" 
