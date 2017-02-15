@@ -83,9 +83,18 @@ nm_802_11_AP_SEC_GROUP_CCMP = 0x80
 nm_802_11_AP_SEC_KEY_MGMT_PSK = 0x100
 nm_802_11_AP_SEC_KEY_MGMT_802_1X = 0x200
 
+-- Update guest nodes instead of stubdom nodes
+--   Note: this serves as a workaround for guest nodes not getting updated
+deStubdom :: String -> IO (DomainId)
+deStubdom domid = do
+    target <- xsRead ("/local/domain/" ++ domid ++ "/target")
+    case target of
+        Just x -> return (read x)
+        Nothing -> return (read domid)
+
 -- Query first, then export
-wifiXsQueryAndExport :: DomainId -> String -> DomainId -> Rpc ()
-wifiXsQueryAndExport slaveDomid slaveObj guestDomid= do -- info "exporting wifi information to xenstore"
+wifiXsQueryAndExport' :: DomainId -> String -> DomainId -> Rpc ()
+wifiXsQueryAndExport' slaveDomid slaveObj guestDomid = do -- info "exporting wifi information to xenstore"
     wifiQueryNm slaveDomid slaveObj >>= f 
         where 
             f Nothing     = liftIO $ do 
@@ -97,8 +106,13 @@ wifiXsQueryAndExport slaveDomid slaveObj guestDomid= do -- info "exporting wifi 
                                wifiXsExportAp (activeApPath guestDomid) info
                                wifiXsExportFakeInfoAp guestDomid
 
-            activeApPath domid = "/local/domain/" ++ show guestDomid ++ "/wlan/0"
-            fakeInfoApPath domid = "/local/domain/" ++ show guestDomid ++ "/wlan/1"
+            activeApPath domid = "/local/domain/" ++ show domid ++ "/wlan/0"
+            fakeInfoApPath domid = "/local/domain/" ++ show domid ++ "/wlan/1"
+
+wifiXsQueryAndExport :: DomainId -> String -> DomainId -> Rpc ()
+wifiXsQueryAndExport slaveDomid slaveObj guestOrStubdomDomid = do
+    guestDomid <- liftIO $ deStubdom (show guestOrStubdomDomid)
+    wifiXsQueryAndExport' slaveDomid slaveObj guestDomid
 
 wifiQueryNm domid slaveNw =  do
     apInfo <- withNetworkSlave domid (NC.comCitrixXenclientNetworkConfigGetExtraInfo slaveService slaveNw)
