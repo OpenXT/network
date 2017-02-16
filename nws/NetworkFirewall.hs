@@ -105,6 +105,7 @@ cleanupFirewallRules vif bridgeI = configGetBridgeFiltering >>= \x -> when (x) $
     cleanupVifOutRules bridge
     removeChain vifChainOut
     removeChain vifChainIn
+    removeChain vifChain
 
     where
         vifIfaceIn="--physdev-in " ++ vif
