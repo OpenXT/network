@@ -26,6 +26,7 @@ import System.Posix.Process
 import System.Posix.Signals
 import System.FilePath.Posix ((</>))
 import System.Directory
+import System.Process
 
 import Rpc
 import Rpc.Core
@@ -146,7 +147,8 @@ nwdRootObjPath = fromString nwdRootObj
 configureVirtualInterface appState domid devid mac = liftIO $ void $ do
     debug $ printf "Configure virtual interface on dom0 with mac : %s" mac
     mapM_ (xsVifRemove "0") ["0", "1"] 
-    system $ xenopsAddVifCmd "0" (show domid) mac devid
+    (_, _, _, pid) <- createProcess (proc "/usr/sbin/xl" ["network-attach", "0", "type=vif", printf "mac=%s" mac, printf "backend=%s" (show domid)]){ close_fds = True }
+    waitForProcess pid
 
 configureDom0IP = do
     -- assuming that at any given time, dom0 in XT will have only one active interface
@@ -518,8 +520,10 @@ cleanupSlaveObjs appState uuid domid = void $ do
                 -- Remove vifs on Dom0 if Dom0 network is removed
                 dom0Network  <- fromMaybe "" <$> getDom0Network
 		when (elem dom0Network $ M.keys matchedNws) $ void $ 
-                      liftIO $ do system $ xenopsDelVifCmd "0" (show domid) "0" 
-                                  system $ xenopsDelVifCmd "0" (show domid) "1"
+                      liftIO $ do (_, _, _, pid) <- createProcess (proc "/usr/sbin/xl" ["network-detach", "0", "0"]){ close_fds = True }
+		                  waitForProcess pid
+                                  (_, _, _, pid) <- createProcess (proc "/usr/sbin/xl" ["network-detach", "0", "1"]){ close_fds = True }
+				  waitForProcess pid
  
         cleanupState appState (nwObj, nwInfo) = do
             -- freeSubnets <- liftIO $ takeMVar subnetsMVar
@@ -755,8 +759,12 @@ moveToNetwork vif network = do
                                 then moveVif newDomid gDomid gDevid vif nw
                                 else moveVifToDomain (networkBackendDomid y) newDomid gDomid gDevid gMac
 
-        addVif sDomid gDomid gDevid mac = system (xenopsAddVifCmd gDomid (show sDomid) mac gDevid) 
-        delVif sDomid gDomid gDevid = system (xenopsDelVifCmd gDomid (show sDomid) gDevid) 
+        addVif sDomid gDomid gDevid mac = do
+	     (_, _, _, pid) <- createProcess (proc "/usr/sbin/xl" ["network-attach", gDomid, "type=vif", printf "mac=%s" mac, printf "backend=%s" (show sDomid)]){ close_fds = True }
+	     waitForProcess pid
+        delVif sDomid gDomid gDevid = do
+	     (_, _, _, pid) <- createProcess (proc "/usr/sbin/xl" ["network-detach", gDomid, gDevid]){ close_fds = True }
+	     waitForProcess pid
         disconnectVif sDomid gDomid gDevid =  xsSetVifDisconnect gDomid gDevid (show sDomid) "1"
 
         vifMac sDomid gDomid gMac nw = if ((read gDomid :: Int) == 0)
