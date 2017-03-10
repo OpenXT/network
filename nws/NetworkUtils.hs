@@ -127,7 +127,7 @@ listPhyInterfaces = catMaybes <$> (mapM isPhy =<< sysfsnetOrderedContents)
 isVifOrTunInterface :: FilePath -> IO (Bool)
 isVifOrTunInterface iface = do
     devtype <- strip <$> getFileContents (sysfsnet </> iface </> "device" </> "devtype")
-    return ((devtype =~ "vif" :: Bool) || (iface =~ "tap" :: Bool))
+    return ((devtype =~ "vif" :: Bool) || (devtype =~ "vwif" :: Bool) || (iface =~ "tap" :: Bool))
 
 isBridgeInterface :: String -> IO (Bool)
 isBridgeInterface iface =  doesDirectoryExist (sysfsnet </> iface </> "bridge")

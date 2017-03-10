@@ -158,18 +158,35 @@ xsVifRemove gDomid gDevid = xsRm $ printf "/local/domain/%s/device/vif/%s" gDomi
 xsBackendVifNode :: String -> String
 xsBackendVifNode = printf "/local/domain/%s/backend/vif" 
 
+xsBackendVwifNode :: String -> String
+xsBackendVwifNode = printf "/local/domain/%s/backend/vwif"
+
 xsVifNetwork :: String -> String -> String -> IO (Maybe String)
-xsVifNetwork domid devid backendDomid = xsRead $ printf "%s/%s/%s/bridge" (xsBackendVifNode backendDomid)  domid devid
---xsVifMac domid devid backendDomid = xsRead $ printf "%s/%s/%s/mac" (xsBackendVifNode backendDomid) domid devid
+xsVifNetwork domid devid backendDomid = do
+    vif <- xsRead $ printf "%s/%s/%s/bridge" (xsBackendVifNode backendDomid)  domid devid
+    case vif of
+        Just _ -> return $ vif
+        Nothing -> xsRead $ printf "%s/%s/%s/bridge" (xsBackendVwifNode backendDomid)  domid devid
 
 xsVifState :: String -> String -> String -> IO (Maybe String)
-xsVifState domid devid backendDomid = xsRead $ printf "%s/%s/%s/state" (xsBackendVifNode backendDomid)  domid devid
+xsVifState domid devid backendDomid = do
+    vif <- xsRead $ printf "%s/%s/%s/state" (xsBackendVifNode backendDomid)  domid devid
+    case vif of
+        Just _ -> return $ vif
+        Nothing -> xsRead $ printf "%s/%s/%s/state" (xsBackendVwifNode backendDomid)  domid devid
 
 xsVifFrontend :: String -> String -> String -> IO (Maybe String)
-xsVifFrontend domid devid backendDomid = xsRead $ printf "%s/%s/%s/frontend" (xsBackendVifNode backendDomid) domid devid
+xsVifFrontend domid devid backendDomid = do
+    vif <- xsRead $ printf "%s/%s/%s/frontend" (xsBackendVifNode backendDomid) domid devid
+    case vif of
+        Just _ -> return $ vif
+        Nothing -> xsRead $ printf "%s/%s/%s/frontend" (xsBackendVwifNode backendDomid) domid devid
 
 xsGuestDomains :: String -> IO ([String])
-xsGuestDomains backendDomid = xsDir (xsBackendVifNode backendDomid)
+xsGuestDomains backendDomid = do
+    vifNodes <- xsDir (xsBackendVifNode backendDomid)
+    vwifNodes <- xsDir (xsBackendVwifNode backendDomid)
+    return $ (vifNodes ++ vwifNodes)
 
 xsDevIds :: String -> String -> IO ([String])
 xsDevIds backendDomid guestDomid = xsDir $ printf "%s/%s" (xsBackendVifNode backendDomid) guestDomid
