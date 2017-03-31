@@ -80,7 +80,7 @@ isWired :: NetworkObj -> Bool
 isWired network = network =~ "wired" :: Bool
 
 isWireless :: NetworkObj -> Bool
-isWireless network = network =~ "wireless" :: Bool
+isWireless network = network =~ "wifi" :: Bool
 
 isInternal :: NetworkObj -> Bool
 isInternal network = network =~ "internal" :: Bool
@@ -307,7 +307,7 @@ initWirelessNetwork iface = do
 
     let index =  1 + getMaxIndex existingNws
         indexStr = show index
-        nwId = "/wireless/" ++ indexStr
+        nwId = "/wifi/" ++ indexStr
         sharedNw = nwId ++ "/shared"
         --brshared = "brwireless" ++ ifindex
         brshared = bridgeForWireless newNwConf index ifindex 

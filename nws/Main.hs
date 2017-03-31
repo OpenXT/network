@@ -35,12 +35,13 @@ import Data.Word
 import qualified Data.Map as M
 import qualified Data.Text.Lazy as TL
 import Data.Maybe
+import Data.List
 
 import Text.Printf
 import Text.Regex.Posix
 import System.FilePath.Posix
 import System.Posix.Syslog
-import System.Process (system)
+import System.Process (system, readProcessWithExitCode)
 
 import Control.Monad.Trans
 import Control.Monad.Error
@@ -172,6 +173,7 @@ implementNetworkSlaveInterfaces = do
         , comCitrixXenclientNetworkslaveNwConnectivity = runApp appState networkConnectivity
         , comCitrixXenclientNetworkslaveGetIcavmNetwork = runApp appState getIcavmNetwork 
         , comCitrixXenclientNetworkslaveNmState = runApp appState $ liftRpc $ nmState
+        , comCitrixXenclientNetworkslaveVifAdded = \vif -> runApp appState $ vifAdded vif
     }
 
 createInternalNetworks :: Int -> App ()
@@ -230,3 +232,8 @@ listNetworks = do
         internalNws <- readMVar (internalNetworks appState)
         anyNw <- readMVar (anyNetwork appState)
         return ((M.keys wiredNws) ++ (M.keys wirelessNws) ++ (M.keys mobileNws) ++ (M.keys internalNws) ++ (anyNw:[]))
+
+vifAdded :: String -> App (Bool)
+vifAdded vif = do
+    (exitCode,stdout,_) <- liftIO $ readProcessWithExitCode "brctl" ["show"] []
+    return $ isInfixOf vif stdout

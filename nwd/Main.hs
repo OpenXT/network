@@ -546,6 +546,7 @@ implementNWDServer = do
     , comCitrixXenclientNetworkdaemonList = runApp appState $ listNetworks
     , comCitrixXenclientNetworkdaemonListBackends = runApp appState $ listNetworkBackends
     , comCitrixXenclientNetworkdaemonIsInitialized = return True 
+    , comCitrixXenclientNetworkdaemonVifConnected = \vif domid -> vifConnected vif domid
     , comCitrixXenclientNetworkdaemonNdvmStatus = \uuid domid status -> runApp appState $ ndvmStatusUpdate uuid domid status
     , comCitrixXenclientNetworkdaemonCreateNetwork = createNetwork
     , comCitrixXenclientNetworkdaemonGetNetworkBackend = \nw -> runApp appState $ getNetworkBackend nw
@@ -580,6 +581,10 @@ listNetworkBackends = do
     where runningBackends slaveObj = if (networkSlaveState  slaveObj == Initialized)
                                         then (networkSlaveObj slaveObj):[]
                                         else [] 
+
+vifConnected :: String -> Int32 -> Rpc Bool
+vifConnected vif domid = do
+    withNetworkSlave (fromIntegral domid) $ NWS.comCitrixXenclientNetworkslaveVifAdded slaveService slaveRootObj (vif)
 
 getNetworkBackend :: String -> App String
 getNetworkBackend nw = do
