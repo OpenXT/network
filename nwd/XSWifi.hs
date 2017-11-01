@@ -103,6 +103,8 @@ wifiXsQueryAndExport' slaveDomid slaveObj guestDomid = do -- info "exporting wif
                                xsRm (fakeInfoApPath guestDomid)
             f (Just info) = do
                                debug $ printf "Export AP information %s " (activeApPath guestDomid)
+                               liftIO $ xsWrite ("/local/domain/" ++ show guestDomid ++ "/wlan") ""
+                               liftIO $ xsSetPermissions ("/local/domain/" ++ show guestDomid ++ "/wlan") [Permission 0 [], Permission guestDomid [PermRead,PermWrite]]
                                wifiXsExportAp (activeApPath guestDomid) info
                                wifiXsExportFakeInfoAp guestDomid
 
