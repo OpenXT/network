@@ -434,7 +434,7 @@ configureSharedNetwork brshared interface outputIf nwType subnetRange = do
 configureBridgedNetwork :: String -> String -> String -> String -> IO ()
 configureBridgedNetwork bridge interface nwType nwMac = do
     debug $ printf "configureBridgedNetwork : %s %s %s %s" bridge interface nwType nwMac
-    checkAndAddBridge bridge
+    checkAndAddBridgeFwd bridge
     disableReversePathFilter bridge
     readProcessOrDie "ifconfig" [interface, "0.0.0.0", "up", "promisc"] []
     ethMac <- if (null nwMac)

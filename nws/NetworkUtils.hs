@@ -33,7 +33,8 @@ module NetworkUtils ( listNetworkInterfaces
                       , bridgeExists
                       , joinBridge
                       , leaveBridge
-                      , checkAndAddBridge 
+                      , checkAndAddBridge
+                      , checkAndAddBridgeFwd
                       , checkAndJoinBridge
                       , checkAndLeaveBridge
                       , removeBridge
@@ -193,19 +194,21 @@ leaveBridge bridge interface = unless (null bridge) $ void $ do
     spawnShell $ printf "brctl delif %s %s" bridge interface
     spawnShell $ printf "ip link set %s down" interface
 
-checkAndAddBridge :: String -> IO ()
-checkAndAddBridge bridge = do
+_checkAndAddBridge :: String -> String -> IO ()
+_checkAndAddBridge bridge fwd_mask = do
     exists <- bridgeExists bridge
-    case exists of 
+    case exists of
          False -> do debug $ "Adding bridge " ++ bridge
-                     readProcessOrDie "brctl" ["addbr", bridge] []
+                     readProcessOrDie "ip" ["link", "add", bridge, "type", "bridge", "forward_delay", "0", "stp_state", "0", "group_fwd_mask", fwd_mask] []
                      return ()
          otherwise -> do debug $ bridge ++ "  already exists"
                          return ()
-         
-    readProcessOrDie "brctl" ["stp", bridge, "off"] []
-    readProcessOrDie "brctl" ["setfd", bridge, "0"] []
-    return ()
+
+checkAndAddBridge :: String -> IO ()
+checkAndAddBridge bridge = _checkAndAddBridge bridge "0"
+
+checkAndAddBridgeFwd :: String -> IO ()
+checkAndAddBridgeFwd bridge = _checkAndAddBridge bridge "0xfff8"
 
 checkAndJoinBridge :: String -> String -> IO Bool
 checkAndJoinBridge bridge interface = do
