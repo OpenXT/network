@@ -30,7 +30,7 @@ update_lease() {
 }
 remove_lease() {
 	logger "$SCRIPTNAME: removing lease for $1"
-	db-remove-dom0 "$DOMSTORE_PATH/$1"
+	db-rm-dom0 "$DOMSTORE_PATH/$1"
 }
 
 logger "$SCRIPTNAME: invoked with: $@"
