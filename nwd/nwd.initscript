@@ -30,7 +30,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 do_start()
 {
         echo "Starting network daemon"
-        V4V_CLIENT_PORT_ADDEND=10000 start-stop-daemon --start --quiet --oknodo --background --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- +RTS -F1 -G1
+        ARGO_CLIENT_PORT_ADDEND=10000 start-stop-daemon --start --quiet --oknodo --background --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- +RTS -F1 -G1
 }
 
 do_stop()
