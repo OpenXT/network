@@ -70,3 +70,8 @@ anyM p = orM . map p
 orM = foldr orM2 (return False)
 orM2 a b = do x <- a
               if x then return True else b
+
+uuidGen :: IsString a => IO a
+uuidGen =
+    readFile "/proc/sys/kernel/random/uuid" >>= return . fromString . strip
+  where strip = T.unpack . T.strip . T.pack
