@@ -544,26 +544,17 @@ networkDevice bridge interface nwType connectionType = do
           | (nwType == eNETWORK_TYPE_INTERNAL) -> return Nothing
           | (nwType == eNETWORK_TYPE_ANY) -> return Nothing
           | (nwType == eNETWORK_TYPE_WIFI) -> return $ Just interface
-          | (nwType == eNETWORK_TYPE_WIRED && connectionType == eCONNECTION_TYPE_SHARED) -> do
-                             newNwConf <- stateNewNetworks
-                             ifindex <- liftIO $ interfaceIndex interface
-                             return $ Just $ bridgeForWired newNwConf interface ifindex "brbridged"
+          | (nwType == eNETWORK_TYPE_WIRED) -> return $ Just interface
           | otherwise -> return $ Just bridge
-
 
 networkCarrier :: String -> String -> String -> String -> App Bool
 networkCarrier bridge interface nwType connectionType = do
-    case () of
-      _ | (connectionType == eCONNECTION_TYPE_BRIDGED) -> liftIO $ interfaceCarrier bridge
-        | otherwise -> nmNetworkState 
-       
-    where
-    nmNetworkState = networkDevice bridge interface nwType connectionType >>= \nmIface -> 
-                     case nmIface of
-                          Nothing -> return True
-                          Just d ->  liftRpc $ (objPathToStr <$> nmObjPath d) >>= f  where 
-                                               f "" = return False
-                                               f x  = nmCarrier x 
+    networkDevice bridge interface nwType connectionType >>= \nmIface ->
+        case nmIface of
+            Nothing -> return True
+            Just d ->  liftRpc $ (objPathToStr <$> nmObjPath d) >>= f  where
+                f "" = return False
+                f x  = nmCarrier x
 
 networkState :: String -> String -> String -> String -> App Word32
 networkState bridge interface nwType connectionType = do
@@ -832,7 +823,7 @@ nwForNmDevice appState nmDevObj = do
     devType <- nmDeviceType nmDevObj
 
     (nwObj, _) <- case () of
-                       _ | (devType == eNM_DEVICE_TYPE_ETHERNET) -> liftIO $ getNetworkWithProperty (wiredNetworks appState) (matchNwBridge iface)
+                       _ | (devType == eNM_DEVICE_TYPE_ETHERNET ) -> liftIO $ getNetworkWithProperty (wiredNetworks appState) (matchNwIface iface)
                          | (devType == eNM_DEVICE_TYPE_WIFI ) -> liftIO $ getNetworkWithProperty (wirelessNetworks appState) (matchNwIface iface)
                          | (devType == eNM_DEVICE_TYPE_MODEM ) -> liftIO $ getNetworkWithProperty (mobileNetworks appState) (matchNwIface iface)
                          | otherwise -> return (M.empty, M.empty)

@@ -45,7 +45,6 @@ module NetworkUtils ( listNetworkInterfaces
                       , interfaceMac
                       , interfaceType
                       , interfaceExists
-                      , interfaceCarrier
                       , changeIfaceMac
                       , addIptableRulesIfMissing 
                       , isValidMac
@@ -263,12 +262,6 @@ interfaceType interface = strip <$> getFileContents (sysfsnet </> interface </> 
 
 interfaceExists :: String -> IO Bool
 interfaceExists interface = doesDirectoryExist (sysfsnet </>  interface)
-
-interfaceCarrier :: String -> IO Bool
-interfaceCarrier interface = (== "1") <$> (strip <$> getFileContents carrierPath) `catchError` (\ex -> return "0")
-    where
-        carrierPath = sysfsnet </> interface </> "carrier"
-                               
 
 changeIfaceMac iface mac = do
     interfaceDown iface
