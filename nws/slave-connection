@@ -1,0 +1,16 @@
+[802-3-ethernet]
+interface-name=<IFACE>
+duplex=full
+
+[connection]
+id=<BRIDGE>-slave
+uuid=<UUID>
+type=802-3-ethernet
+master=<BRIDGE>
+slave-type=bridge
+
+[ipv6]
+method=ignore
+
+[ipv4]
+method=auto

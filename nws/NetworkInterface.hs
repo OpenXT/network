@@ -76,6 +76,35 @@ import Rpc.Autogen.NmActiveConnectionClient
 anyBridge = "brany"
 anyNwObj = "/any"
 
+bridgeSetting :: String -> String -- monomorphism
+bridgeSetting = printf "/etc/NetworkManager/system-connections/%s"
+slaveSetting :: String -> String -- monomorphism
+slaveSetting = printf "/etc/NetworkManager/system-connections/%s-slave"
+
+addConnectionSettings :: String -> String -> IO ()
+addConnectionSettings bridge iface = do
+    createDirectoryIfMissing False "/etc/NetworkManager/system-connections"
+    generateBridgeSetting bridge
+    generateSlaveSetting bridge
+    return ()
+
+    where
+        bridgeTemplate = "/etc/network-daemon/bridge-connection"
+        slaveTemplate = "/etc/network-daemon/slave-connection"
+
+        fill bridge uuid = T.replace (T.pack "<BRIDGE>") (T.pack bridge)
+                         . T.replace (T.pack "<UUID>") (T.pack uuid)
+                         . T.replace (T.pack "<IFACE>") (T.pack iface)
+
+        generateSettingsFile bridge template target = do
+                    settingStr <- liftIO $ readFile template
+                    uuid <- liftIO $ uuidGen
+                    let settings = T.unpack $ fill bridge (uuid :: String) $ T.pack settingStr
+                    writeFile target settings
+
+        generateBridgeSetting bridge = generateSettingsFile bridge bridgeTemplate (bridgeSetting bridge)
+        generateSlaveSetting bridge = generateSettingsFile bridge slaveTemplate  (slaveSetting bridge)
+
 isWired :: NetworkObj -> Bool
 isWired network = network =~ "wired" :: Bool
 
@@ -434,6 +463,13 @@ configureSharedNetwork brshared interface outputIf nwType subnetRange = do
 configureBridgedNetwork :: String -> String -> String -> String -> IO ()
 configureBridgedNetwork bridge interface nwType nwMac = do
     debug $ printf "configureBridgedNetwork : %s %s %s %s" bridge interface nwType nwMac
+    exists <- bridgeExists bridge
+    case exists of
+        False -> do
+                   addConnectionSettings bridge interface
+                   return ()
+        otherwise -> do
+                       return ()
     checkAndAddBridgeFwd bridge
     disableReversePathFilter bridge
     readProcessOrDie "ifconfig" [interface, "0.0.0.0", "up", "promisc"] []
@@ -508,26 +544,17 @@ networkDevice bridge interface nwType connectionType = do
           | (nwType == eNETWORK_TYPE_INTERNAL) -> return Nothing
           | (nwType == eNETWORK_TYPE_ANY) -> return Nothing
           | (nwType == eNETWORK_TYPE_WIFI) -> return $ Just interface
-          | (nwType == eNETWORK_TYPE_WIRED && connectionType == eCONNECTION_TYPE_SHARED) -> do
-                             newNwConf <- stateNewNetworks
-                             ifindex <- liftIO $ interfaceIndex interface
-                             return $ Just $ bridgeForWired newNwConf interface ifindex "brbridged"
+          | (nwType == eNETWORK_TYPE_WIRED) -> return $ Just interface
           | otherwise -> return $ Just bridge
-
 
 networkCarrier :: String -> String -> String -> String -> App Bool
 networkCarrier bridge interface nwType connectionType = do
-    case () of
-      _ | (connectionType == eCONNECTION_TYPE_BRIDGED) -> liftIO $ interfaceCarrier bridge
-        | otherwise -> nmNetworkState 
-       
-    where
-    nmNetworkState = networkDevice bridge interface nwType connectionType >>= \nmIface -> 
-                     case nmIface of
-                          Nothing -> return True
-                          Just d ->  liftRpc $ (objPathToStr <$> nmObjPath d) >>= f  where 
-                                               f "" = return False
-                                               f x  = nmCarrier x 
+    networkDevice bridge interface nwType connectionType >>= \nmIface ->
+        case nmIface of
+            Nothing -> return True
+            Just d ->  liftRpc $ (objPathToStr <$> nmObjPath d) >>= f  where
+                f "" = return False
+                f x  = nmCarrier x
 
 networkState :: String -> String -> String -> String -> App Word32
 networkState bridge interface nwType connectionType = do
@@ -796,7 +823,7 @@ nwForNmDevice appState nmDevObj = do
     devType <- nmDeviceType nmDevObj
 
     (nwObj, _) <- case () of
-                       _ | (devType == eNM_DEVICE_TYPE_ETHERNET) -> liftIO $ getNetworkWithProperty (wiredNetworks appState) (matchNwBridge iface)
+                       _ | (devType == eNM_DEVICE_TYPE_ETHERNET ) -> liftIO $ getNetworkWithProperty (wiredNetworks appState) (matchNwIface iface)
                          | (devType == eNM_DEVICE_TYPE_WIFI ) -> liftIO $ getNetworkWithProperty (wirelessNetworks appState) (matchNwIface iface)
                          | (devType == eNM_DEVICE_TYPE_MODEM ) -> liftIO $ getNetworkWithProperty (mobileNetworks appState) (matchNwIface iface)
                          | otherwise -> return (M.empty, M.empty)

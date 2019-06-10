@@ -1,0 +1,14 @@
+[connection]
+id=<BRIDGE>
+uuid=<UUID>
+type=bridge
+
+[ipv6]
+method=ignore
+
+[ipv4]
+method=auto
+
+[bridge]
+interface-name=<BRIDGE>
+stp=false
