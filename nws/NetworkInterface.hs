@@ -76,35 +76,6 @@ import Rpc.Autogen.NmActiveConnectionClient
 anyBridge = "brany"
 anyNwObj = "/any"
 
-bridgeSetting :: String -> String -- monomorphism
-bridgeSetting = printf "/etc/NetworkManager/system-connections/%s"
-slaveSetting :: String -> String -- monomorphism
-slaveSetting = printf "/etc/NetworkManager/system-connections/%s-slave"
-
-addConnectionSettings :: String -> String -> IO ()
-addConnectionSettings bridge iface = do
-    createDirectoryIfMissing False "/etc/NetworkManager/system-connections"
-    generateBridgeSetting bridge
-    generateSlaveSetting bridge
-    return ()
-
-    where
-        bridgeTemplate = "/etc/network-daemon/bridge-connection"
-        slaveTemplate = "/etc/network-daemon/slave-connection"
-
-        fill bridge uuid = T.replace (T.pack "<BRIDGE>") (T.pack bridge)
-                         . T.replace (T.pack "<UUID>") (T.pack uuid)
-                         . T.replace (T.pack "<IFACE>") (T.pack iface)
-
-        generateSettingsFile bridge template target = do
-                    settingStr <- liftIO $ readFile template
-                    uuid <- liftIO $ uuidGen
-                    let settings = T.unpack $ fill bridge (uuid :: String) $ T.pack settingStr
-                    writeFile target settings
-
-        generateBridgeSetting bridge = generateSettingsFile bridge bridgeTemplate (bridgeSetting bridge)
-        generateSlaveSetting bridge = generateSettingsFile bridge slaveTemplate  (slaveSetting bridge)
-
 isWired :: NetworkObj -> Bool
 isWired network = network =~ "wired" :: Bool
 
@@ -463,13 +434,6 @@ configureSharedNetwork brshared interface outputIf nwType subnetRange = do
 configureBridgedNetwork :: String -> String -> String -> String -> IO ()
 configureBridgedNetwork bridge interface nwType nwMac = do
     debug $ printf "configureBridgedNetwork : %s %s %s %s" bridge interface nwType nwMac
-    exists <- bridgeExists bridge
-    case exists of
-        False -> do
-                   addConnectionSettings bridge interface
-                   return ()
-        otherwise -> do
-                       return ()
     checkAndAddBridgeFwd bridge
     disableReversePathFilter bridge
     readProcessOrDie "ifconfig" [interface, "0.0.0.0", "up", "promisc"] []

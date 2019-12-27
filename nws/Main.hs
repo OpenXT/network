@@ -139,13 +139,13 @@ implementNetworkSlaveNMInterface = do
     }
 
 emitCloseMenuSignal = do
-    (exitCode, out, _) <- liftIO $ readProcessWithExitCode_closeFds "dbus-send" ["--system", "--type=signal", "/", "com.citrix.xenclient.xui.close_network_menu"] []
+    (exitCode, out, _) <- liftIO $ readProcessWithExitCode_closeFds "dbus-send" ["--system", "--type=method_call", "--dest=org.openxt", "/", "org.openxt.nmapplet.close_network_menu"] []
     unless (exitCode == ExitSuccess) $ debug $ printf "Error when emitting close_network_menu signal: %s"  out
     return ()
    
 emitPopupMenuSignal :: Word32 -> Word32 -> Rpc ()
 emitPopupMenuSignal x_off y_off = do 
-    (exitCode, out, _) <- liftIO $ readProcessWithExitCode_closeFds "dbus-send" ["--system", "--type=signal", "/", "com.citrix.xenclient.xui.popup_network_menu", x_arg, y_arg] []
+    (exitCode, out, _) <- liftIO $ readProcessWithExitCode_closeFds "dbus-send" ["--system", "--type=method_call", "--dest=org.openxt", "/", "org.openxt.nmapplet.popup_network_menu", x_arg, y_arg] []
     unless (exitCode == ExitSuccess) $ debug $ printf "Error when emitting popup_network_menu signal: %s"  out
     return ()
 
