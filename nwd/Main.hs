@@ -157,7 +157,7 @@ configureDom0IP = do
 	 ExitSuccess -> do debug "Configure IP address for dom0 interface"
                            pid <- strip <$> fromMaybe "" <$> maybeGetContents udhcpcPidFile
                            unless (null pid) $ void $ system $ "kill " ++ pid 
-			   spawnShell $ printf "udhcpc -b -i eth0 -p %s" udhcpcPidFile
+			   system $ printf "udhcpc -b -i eth0 -p %s" udhcpcPidFile
 	 otherwise -> do threadDelay 1000
 			 configureDom0IP
     where udhcpcPidFile = "/var/run/udhcpc.pid"
