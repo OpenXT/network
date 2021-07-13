@@ -17,55 +17,43 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# Starts network daemon
+DESC="Network Daemon"
+EXEC=/usr/bin/network-daemon
+PIDFILE=/var/run/network-daemon.pid
+OPTS="+RTS -F1 -G1"
 
-NAME=network-daemon
-DAEMON=/usr/bin/$NAME
-PIDFILE=/var/run/$NAME.pid
-SCRIPTNAME=/etc/init.d/$NAME
+set -e
 
-# Exit if the package is not installed
-[ -x "$DAEMON" ] || exit 0
-
-do_start()
-{
-        echo "Starting network daemon"
-        ARGO_CLIENT_PORT_ADDEND=10000 start-stop-daemon --start --quiet --oknodo --background --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- +RTS -F1 -G1
+do_start() {
+    ARGO_CLIENT_PORT_ADDEND=10000 \
+        start-stop-daemon --start --quiet --oknodo --background \
+            --make-pidfile --pidfile "$PIDFILE" \
+            --exec "$EXEC" -- $OPTS
 }
 
-do_stop()
-{
-        echo "Stopping network daemon"
-	start-stop-daemon --stop --quiet --pidfile $PIDFILE
-        while pidof -o %PPID $EXECUTABLE &>/dev/null ; do sleep 0.25 ; done
-        echo "OK"
-	rm -f $PIDFILE
-}
-
-#
-# Function that sends a SIGHUP to the daemon/service
-#
-do_reload() {
-        stop
-        start
+do_stop() {
+    start-stop-daemon --stop --quiet --oknodo --pidfile "$PIDFILE"
+    rm -f "$PIDFILE"
 }
 
 case "$1" in
-  start)
-	
-	do_start
-	;;
-  stop)
-	do_stop
-	;;
-  reload|restart)
-	do_stop
+    start)
+        echo -n "Starting $DESC... "
         do_start
-	;;
-  *)
-	echo "Usage: $SCRIPTNAME {start|stop|restart}" >&2
-	exit 1 
-	;;
+        echo "OK"
+        ;;
+    stop)
+        echo -n "Stopping $DESC... "
+        do_stop
+        echo "OK"
+        ;;
+    restart)
+        echo -n "Restarting $DESC... "
+        do_stop
+        do_start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}" >&2
+        exit 1
+        ;;
 esac
-
-exit $?
