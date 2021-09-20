@@ -29,7 +29,7 @@ import System.Directory
 import System.Process
 
 import Rpc
-import Rpc.Core
+import Rpc.Core (getConn)
 import App
 import Error
 import Tools.Log
@@ -74,6 +74,8 @@ import qualified Rpc.Autogen.NetworkSlaveClient as NWS
 import qualified Rpc.Autogen.NetworkClient as NC
 import Rpc.Autogen.NetworkDaemonConst
 import Rpc.Autogen.NetworkConst
+
+import qualified Network.DBus.Actions as D
 
 -- Main
 main :: IO ()
@@ -140,7 +142,6 @@ onNetworkSignal domid msgname action =
     let rule = matchSignal "com.citrix.xenclient.network.notify" msgname
     in
       nwsOnSignal domid rule action
-
 
 nwdRootObjPath = fromString nwdRootObj
 
@@ -567,11 +568,25 @@ ndvmStatusUpdate uuid domid status = do
                         liftRpc $ do
                             cleanupSlaveObjs appState uuidU domidI 
                             configClearFirewallRules uuidU
+                        closeFds
                          
         | otherwise -> return ()
     where backendObj = networkBackendObj uuidU
           uuidU = fromString uuid
           domidI = fromIntegral domid
+          closeFds = do
+            ctx <- liftRpc $ rpcGetContext
+            clients <- liftIO $ readMVar $ domUClients ctx
+            appState <- getAppState
+            nwses <- liftIO $ readMVar $ nwsInfo appState
+            case (M.lookup (fromString uuid) nwses) of
+              Nothing -> do info $ "Couldn't find nwsInfo"
+                            return ()
+              Just nws -> do
+                case (M.lookup (networkBackendDomid nws) clients) of
+                  Nothing -> do info $ "Couldn't find Dispatcher"
+                                return ()
+                  Just disp -> liftIO $ D.busClose $ getConn disp
 
 listNetworkBackends :: App ([String])
 listNetworkBackends = do 

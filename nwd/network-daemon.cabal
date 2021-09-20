@@ -28,6 +28,7 @@ Executable network-daemon
     xchxenstore,
     xchdb,
     xch-rpc,
+    udbus,
     directory
   Main-Is: Main.hs
   GHC-Options -O2 -fwarn-incomplete-patterns -dynamic -threaded
