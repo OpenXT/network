@@ -670,6 +670,15 @@ configGetNmConfig key = do
     return $ strip value
     where path = "/" ++ key
 
+setNmConfigUnmanaged :: IO ()
+setNmConfigUnmanaged = do
+      readProcessOrDie "sed" args []
+      return ()
+    where
+      args = ["-i",
+              "/^unmanaged-devices.*/s//unmanaged-devices=*/",
+              nmConfFile]
+
 nmManagesDevices :: IO Bool
 nmManagesDevices = (/= "all") <$> configGetNmConfig eCONFIG_NM_UNMANAGED_DEVICES
 
@@ -683,8 +692,7 @@ updateNmConfig = do
     copyFile "/usr/share/xenclient/nm_scripts/NetworkManager.conf" nmConfFile
     m <- nmManagesDevices
     if not m
-       then do phyMacs <- (mapM interfaceMac) =<< listPhyInterfaces
-               appendFile nmConfFile $ printf "[keyfile]\nunmanaged-devices=%s\n" (concatMap (formatMac) phyMacs)
+       then do setNmConfigUnmanaged
        else return () -- TODO when set unmanaged property is enabled for network objects, update NM conf accordingly
 
     -- create necessary folders needed by network manager 
