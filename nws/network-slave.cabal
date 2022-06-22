@@ -27,7 +27,8 @@ Executable network-slave
     xchutils,
     xchxenstore,
     xch-rpc,
-    directory
+    directory,
+    rpc-autogen
   Main-Is: Main.hs
   GHC-Options -O2 -fwarn-incomplete-patterns -dynamic -threaded
 
