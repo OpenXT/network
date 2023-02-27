@@ -20,7 +20,7 @@
 module Main where
 
 import Control.Applicative
-import System
+import System.Exit
 import System.IO
 import Directory
 

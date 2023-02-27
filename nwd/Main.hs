@@ -19,7 +19,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
-import System
+import System.Exit
 import System.IO
 import System.Posix.Syslog
 import System.Posix.Process

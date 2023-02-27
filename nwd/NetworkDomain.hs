@@ -20,7 +20,6 @@
 module NetworkDomain where
 
 import Control.Applicative
-import System
 import System.IO
 import System.Posix.Syslog
 import System.Posix.Process

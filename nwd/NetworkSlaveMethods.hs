@@ -45,7 +45,6 @@ import Tools.Log
 import Tools.Misc
 import Tools.XenStore
 import Tools.File
-import System
 
 import Rpc.Autogen.XenmgrVmClient
 import Rpc.Autogen.XenmgrClient

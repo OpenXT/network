@@ -19,7 +19,6 @@
 {-# LANGUAGE NoMonomorphismRestriction, ScopedTypeVariables #-}
 module XSWifi where
 
-import System
 import System.IO
 import System.Posix.Syslog
 

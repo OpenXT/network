@@ -13,7 +13,6 @@ Executable network-daemon
     time,
     deepseq,
     containers,
-    haskell98,
     process,
     unix,
     text,
