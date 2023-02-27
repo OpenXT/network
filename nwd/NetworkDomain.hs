@@ -78,19 +78,19 @@ implementNetworkDomainInterface obj domid uuid = do
         , comCitrixXenclientNetworkdomainConfigGetNmState = runApp appState $ domainNmState transpBridging domid
         , comCitrixXenclientNetworkdomainPopupNetworkMenu = \x y -> runApp appState $  nmPopupApplet domid x y
         , comCitrixXenclientNetworkdomainCloseNetworkMenu = runApp appState $ nmCloseApplet domid
-	, comCitrixXenclientNetworkdomainConfigGetIsNetworkingActive  = runApp appState $ domainConnectivity transpBridging domid
+        , comCitrixXenclientNetworkdomainConfigGetIsNetworkingActive  = runApp appState $ domainConnectivity transpBridging domid
         , comCitrixXenclientNetworkdomainConfigGetUuid = return $ uuidStr uuid
         , comCitrixXenclientNetworkdomainConfigGetDomid = return $ fromIntegral domid 
         , comCitrixXenclientNetworkdomainConfigGetName = runApp appState $ liftRpc $ getVmNameFromUuid  uuid
     }
 
 matchNwsUuid uuid nwInfo = if (uuid == networkBackendUuid nwInfo)
-			      then Left nwInfo
-			      else Right nwInfo
+                  then Left nwInfo
+                  else Right nwInfo
 
 matchNwsSlaveNw slaveObj nwInfo = if (slaveObj == nwsObj nwInfo)
-			             then Left nwInfo
-			             else Right nwInfo
+                         then Left nwInfo
+                         else Right nwInfo
 
 getNetworksWithProperty matchFunc nwObjsMVar = do
     exportedNws <- liftIO $ readMVar nwObjsMVar
