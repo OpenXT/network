@@ -65,7 +65,7 @@ data NetworkSlaveState = Unknown | Registered | Initialized | Closed
                   deriving (Eq,Show)
 
 newtype App a = App { unApp :: ReaderT AppState Rpc a }
-    deriving (Functor, Monad, MonadIO, MonadError ApiError, MonadReader AppState)
+    deriving (Applicative, Functor, Monad, MonadIO, MonadError ApiError, MonadReader AppState)
 
 initAppState :: IO AppState
 initAppState = do subnets <- newMVar IntSet.empty

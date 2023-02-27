@@ -57,7 +57,7 @@ data NetworkInfo = NetworkInfo {
     } deriving (Eq, Show)
 
 newtype App a = App { unApp :: ReaderT AppState Rpc a }
-    deriving (Functor, Monad, MonadIO, MonadError NwsError, MonadReader AppState)
+    deriving (Applicative, Functor, Monad, MonadIO, MonadError NwsError, MonadReader AppState)
 
 initAppState :: IO AppState
 initAppState = do
