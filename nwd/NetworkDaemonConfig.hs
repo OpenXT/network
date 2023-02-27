@@ -34,7 +34,7 @@ import Text.Printf
 import Tools.Log
 import System.FilePath ((</>))
 
-import Directory
+import System.Directory
 import NwTypes
 
 configDom0IP="ip"

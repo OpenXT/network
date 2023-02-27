@@ -59,7 +59,7 @@ import Data.List
 import Text.Regex.Posix
 import Text.Printf (printf)
 
-import Directory
+import System.Directory
 
 import System.Exit
 import System.FilePath

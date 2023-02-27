@@ -22,7 +22,7 @@ module Main where
 import Control.Applicative
 import System.Exit
 import System.IO
-import Directory
+import System.Directory
 
 import Rpc
 import Rpc.Core

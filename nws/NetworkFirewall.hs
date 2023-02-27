@@ -32,7 +32,7 @@ import qualified Data.Map as M
 import Text.Regex.Posix
 import Text.Printf (printf)
 
-import Directory
+import System.Directory
 
 import System.FilePath.Posix
 import System.Exit

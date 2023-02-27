@@ -48,7 +48,7 @@ import qualified Data.Map as M
 import qualified Data.Text.Lazy as TL
 import Text.Printf
 import Text.Regex.Posix
-import Directory
+import System.Directory
 
 import Control.Monad.Trans
 import Control.Monad.Error

@@ -32,7 +32,7 @@ import Data.Maybe
 import Text.Printf (printf)
 import Text.Regex.Posix
 
-import Directory
+import System.Directory
 
 import System.FilePath
 import System.Process
