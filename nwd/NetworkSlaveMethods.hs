@@ -32,7 +32,6 @@ import Data.Word
 import Data.Bits
 import Data.List
 import qualified Data.Map as M 
-import qualified Data.Text.Lazy as TL
 import Text.Printf
 import Text.Regex.Posix
 import System.Directory
@@ -83,7 +82,7 @@ nwsOnSignal domid rule action = do
 
 signalParser :: BusName -> RpcSignal -> DomainId -> NotifyHandler -> Rpc ()
 signalParser senderName signal domid action = do 
-    let sender =  TL.unpack (strBusName senderName)
+    let sender = strBusName senderName
 --    domid <- fromIntegral <$> orgFreedesktopDBusGetConnectionDOMID "org.freedesktop.DBus" "/org/freedesktop/DBus" sender
     maybe_uuid <- getDomainUuid domid
 
@@ -129,8 +128,8 @@ matchG s regex =
     let (_,_,_,grps) = s =~ regex :: (String,String,String,[String])
     in grps
 
-getVmFromUuid uuid = TL.unpack . strObjectPath <$> comCitrixXenclientXenmgrFindVmByUuid xenmgrService xenmgrRootObj uuid
-getVmFromDomid domid = TL.unpack . strObjectPath <$> comCitrixXenclientXenmgrFindVmByDomid xenmgrService xenmgrRootObj domid
+getVmFromUuid uuid = strObjectPath <$> comCitrixXenclientXenmgrFindVmByUuid xenmgrService xenmgrRootObj uuid
+getVmFromDomid domid = strObjectPath <$> comCitrixXenclientXenmgrFindVmByDomid xenmgrService xenmgrRootObj domid
 getVmName vmObj = comCitrixXenclientXenmgrVmGetName xenmgrService vmObj
 getVmDomid vmObj = comCitrixXenclientXenmgrVmGetDomid xenmgrService vmObj
 getVmState vmObj = comCitrixXenclientXenmgrVmGetState xenmgrService vmObj
@@ -240,9 +239,6 @@ initializedSlaves = do
 
 getFileContents :: FilePath -> IO String
 getFileContents filePath = fromMaybe "" <$> maybeGetContents filePath
-
-objPathToStr :: ObjectPath -> String
-objPathToStr = TL.unpack . strObjectPath
 
 getSlaveInfo :: AppState -> (Maybe String) -> IO (Maybe NwsObjInfo)
 getSlaveInfo appState Nothing = return Nothing

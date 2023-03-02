@@ -45,7 +45,6 @@ import Data.List
 import Data.IntSet (IntSet, (\\))
 import qualified Data.IntSet as IntSet
 import qualified Data.Map as M
-import qualified Data.Text.Lazy as TL
 import Text.Printf
 import Text.Regex.Posix
 import System.Directory
@@ -150,7 +149,7 @@ networkStateChanged appState task_mv dbusid domid uuid slaveNw args = do
           initialized <- checkNetworkDomainState Initialized knownSlaves uuid domid
           if (initialized == True)
              then do
-               nwMap <- exposedNwForSlaveNw appState uuid (objPathToStr slaveNw)
+               nwMap <- exposedNwForSlaveNw appState uuid (strObjectPath slaveNw)
                case (M.toList nwMap) of 
                     [(nwObj, nwInfo)] -> do mapM_ (emitStateChanged nmState (networkBackendObj uuid)) $ nub $ nwObj:(bridgedPair nwObj):[]
                                             scheduleSynchronise task_mv appState domid uuid 

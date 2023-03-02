@@ -516,7 +516,7 @@ networkCarrier bridge interface nwType connectionType = do
     networkDevice bridge interface nwType connectionType >>= \nmIface ->
         case nmIface of
             Nothing -> return True
-            Just d ->  liftRpc $ (objPathToStr <$> nmObjPath d) >>= f  where
+            Just d ->  liftRpc $ (strObjectPath <$> nmObjPath d) >>= f  where
                 f "" = return False
                 f x  = nmCarrier x
 
@@ -525,7 +525,7 @@ networkState bridge interface nwType connectionType = do
     interface <- networkDevice bridge interface nwType connectionType
     case interface of
          Nothing -> return eNM_DEVICE_STATE_UNMANAGED
-         Just d -> liftRpc $ (objPathToStr <$> nmObjPath d) >>= f where
+         Just d -> liftRpc $ (strObjectPath <$> nmObjPath d) >>= f where
                      f "" = return eNM_DEVICE_STATE_UNKNOWN
                      f x = nmDeviceState x
 
@@ -534,19 +534,19 @@ networkNmManaged bridge interface nwType connectionType = do
     interface <- networkDevice bridge interface nwType connectionType
     case interface of
          Nothing -> return False
-         Just d -> liftRpc $ (objPathToStr <$> nmObjPath d) >>= nmDeviceManaged
+         Just d -> liftRpc $ (strObjectPath <$> nmObjPath d) >>= nmDeviceManaged
  
 networkInfo :: String -> String -> String -> String -> App (M.Map String String)
 networkInfo bridge interface nwType connectionType = do
     if (nwType == eNETWORK_TYPE_WIFI) 
        then liftRpc $ do
-           nmDev <- objPathToStr <$> nmObjPath interface
+           nmDev <- strObjectPath <$> nmObjPath interface
            if (null nmDev)
               then return M.empty
               else do 
                   isActive <- (==eNM_DEVICE_STATE_ACTIVATED) <$> (nmDeviceState nmDev)
                   if isActive
-                     then (objPathToStr <$> nmActiveAp nmDev) >>= f
+                     then (strObjectPath <$> nmActiveAp nmDev) >>= f
                      else return M.empty
         else return M.empty
     where f "" = return M.empty
@@ -869,12 +869,12 @@ networkConnectivity = liftRpc $ do
     debug $ printf "Active connections - %s" (show activeCons)
     anyM isConnected activeCons
 
-deviceState iface = (objPathToStr <$> nmObjPath iface) >>= nmDeviceState
+deviceState iface = (strObjectPath <$> nmObjPath iface) >>= nmDeviceState
 
 isConnected :: ObjectPath -> Rpc Bool
 isConnected nmConnection =  do 
     debug $ printf "Check if %s is connected" (show nmConnection)
-    (== eNM_ACTIVE_CONNECTION_STATE_ACTIVATED) <$> ( nmActiveConnectionState (objPathToStr nmConnection))
+    (== eNM_ACTIVE_CONNECTION_STATE_ACTIVATED) <$> ( nmActiveConnectionState (strObjectPath nmConnection))
 
 listVifs :: App ([String])
 listVifs = liftIO $ do

@@ -76,9 +76,6 @@ nmOnWifiDevicePropertiesChanged action =
                            device = (show path)
                       in action device
 
-objPathToStr :: ObjectPath -> String
-objPathToStr = T.unpack . strObjectPath
-
 nmObjPath :: String -> Rpc ObjectPath
 nmObjPath iface = do 
     -- debug $ printf "nm device for %s " iface
