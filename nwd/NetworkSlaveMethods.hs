@@ -96,8 +96,7 @@ signalParser senderName signal domid action = do
 networkObjPath [nwObjV] = let Just nwObj = fromVariant nwObjV in nwObj
 varToStr [nwObjV] = let Just nwObj = fromVariant nwObjV in nwObj
 
-networkObjPaths :: [Variant] -> [String]
-networkObjPaths [nwObjV] =  let Just nwObj = fromVariant nwObjV in nwObj
+varToArrStr :: [Variant] -> [String]
 varToArrStr [nwObjV] =  let Just nwObj = fromVariant nwObjV in nwObj
 
 xenmgrService = "com.citrix.xenclient.xenmgr"
