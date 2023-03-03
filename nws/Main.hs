@@ -71,7 +71,7 @@ main = do
 
 -- Start the service and the implementations
 doService appState service implementation = 
-    withSyslog "network-slave" [] USER . rpcServe "com.citrix.xenclient.networkslave" $ \rpcContext ->
+    withSyslog "network-slave" [] User . rpcServe "com.citrix.xenclient.networkslave" $ \rpcContext ->
         do 
             r <- E.try $ do
                 status <- rpc rpcContext $ runApp appState $ do 
