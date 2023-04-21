@@ -171,7 +171,7 @@ addRouteLookup ifIndex rtTable inputIf = do
 -- check if ip rule for route lookup exists
 routeLookupExists :: String -> String -> IO [Bool]
 routeLookupExists rtname inputIf = do
-    (_, rules, _) <- readProcessWithExitCode_closeFds "/bin/ip"  ["rule", "show"] []
+    (_, rules, _) <- readProcessWithExitCode_closeFds "ip"  ["rule", "show"] []
     let lookupTables = map (parseLookup inputIf) $ lines rules
 
     debug $ "lookup tables from ip rule show " ++ show lookupTables
