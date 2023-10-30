@@ -80,7 +80,7 @@ domidToUuid domid =
 
 addForwardChain :: String -> String -> String -> IO ()
 addForwardChain inputIf outputIf interface = do 
-    (_, out, _) <- readProcessWithExitCode_closeFds "/usr/sbin/iptables" ["-S", "FORWARD"] []
+    (_, out, _) <- readProcessWithExitCode_closeFds "/usr/sbin/iptables" ["-w", "-S", "FORWARD"] []
     let output = lines out
     configGetBridgeFiltering >>= \x -> when (x && outputIf /= interface) $ 
          addIptableRulesIfMissing output (printf "-A FORWARD -i %s -o %s -m physdev --physdev-in %s -j FORWARD_%s" outputIf outputIf interface outputIf)
@@ -97,7 +97,7 @@ addForwardChain inputIf outputIf interface = do
 cleanupFirewallRules vif bridgeI = configGetBridgeFiltering >>= \x -> when (x) $ do
     bridge <- if (null bridgeI) 
                  then do
-                    out <- words <$> (spawnShell $ printf "iptables -L FORWARD -v | grep %s | awk '{ print $6 }'" vif)
+                    out <- words <$> (spawnShell $ printf "iptables -w -L FORWARD -v | grep %s | awk '{ print $6 }'" vif)
                     if (null out) then return "" else return $ head out
                  else return bridgeI
 
@@ -186,13 +186,13 @@ applyFirewallRules vif bridge = void $ configGetBridgeFiltering >>= \x -> when x
 
 appendRuleIfMissing :: String -> String -> IO ()
 appendRuleIfMissing table ruleArgs = do
-    (_, out, _) <- readProcessWithExitCode_closeFds "/usr/sbin/iptables" ["-S", table] []
+    (_, out, _) <- readProcessWithExitCode_closeFds "/usr/sbin/iptables" ["-w", "-S", table] []
     addIptableRulesIfMissing (lines out) rule
     where rule = printf " -A %s %s" table ruleArgs
 
 insertRuleIfMissing :: String -> String -> IO ()
 insertRuleIfMissing table ruleArgs = do
-    (_, out, _) <- readProcessWithExitCode_closeFds "/usr/sbin/iptables" ["-S", table] []
+    (_, out, _) <- readProcessWithExitCode_closeFds "/usr/sbin/iptables" ["-w", "-S", table] []
     addIptableRulesIfMissing (lines out) rule
     where rule = printf " -I %s %s" table ruleArgs
 
