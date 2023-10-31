@@ -36,6 +36,8 @@ module NetworkForwarding (initRtTables
 import Text.Regex.Posix
 import Text.Printf (printf)
 
+import Data.List (intercalate)
+
 import Directory
 
 import System.FilePath.Posix
@@ -43,6 +45,7 @@ import System.Exit
 
 import Control.Monad
 import Control.Applicative
+import qualified Control.Exception as E
 
 import Tools.Process
 import Tools.Log
@@ -147,6 +150,28 @@ addRoutingTableForInterface outputIf ifindex = do
         rtName = "rt-" ++ outputIf
         rtIndex = show (routingTableIndex ifindex)
 
+readProcessError :: FilePath -> [String] -> String -> IO (ExitCode, String)
+readProcessError p xs i = fmap from $ readProcessWithExitCode_closeFds p xs i where
+    from ( ExitSuccess,    stdout, _     ) = (ExitSuccess,   stdout)
+    from ((ExitFailure e), _,      stderr) = (ExitFailure e, stderr)
+
+readProcessOrError :: FilePath -> [String] -> String -> IO String
+readProcessOrError p xs i = from =<< readProcessError p xs i where
+    from (ExitSuccess,   r) = return r
+    from (ExitFailure _, e)  = error $ "command: " ++ show cmd ++ " FAILED - error:" ++ show e
+    cmd           = p ++ " " ++ (intercalate " " xs)
+
+runCmdRetry :: Int -> FilePath -> [String] -> String -> IO String
+runCmdRetry n cmd args stdin = do
+    info $ "running command: " ++ show command
+    readProcessOrError cmd args stdin `E.catch` proc_error n
+  where
+    proc_error :: Int -> E.SomeException -> IO String
+    proc_error 0 e = E.throw e
+    proc_error i e = do info $ "failed " ++ show e
+                        runCmdRetry (i - 1) cmd args stdin
+    command  = cmd ++ " " ++ (intercalate " " args)
+
 addRouteLookup :: String -> String -> String -> IO ()
 addRouteLookup ifIndex rtTable inputIf = do
     rtExists <- routeLookupExists rtTable inputIf
@@ -160,10 +185,10 @@ addRouteLookup ifIndex rtTable inputIf = do
         index = read ifIndex :: Int
         routePref = 100 + index
         unreachPref = 200 + index
-        
+
         addRouteLookupRule pref table iif = do
-          readProcessOrDie "ip" ["rule", "add", "pref", show pref
-                                , "iif", iif, "table", table] []
+          runCmdRetry 5 "ip" ["rule", "add", "pref", show pref
+                              , "iif", iif, "table", table] []
           return ()
 
 -- check if ip rule for route lookup exists
