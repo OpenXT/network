@@ -76,14 +76,14 @@ initNATRules = do
     return ()
 
     where 
-        natRuleAdd prefix = spawnShell $ printf "iptables -t nat -A POSTROUTING -o %s+ -j MASQUERADE" prefix
+        natRuleAdd prefix = spawnShell $ printf "iptables -w -t nat -A POSTROUTING -o %s+ -j MASQUERADE" prefix
 
 cleanupNATRules :: IO ()
-cleanupNATRules = void $ spawnShell "iptables -t nat -F POSTROUTING"
+cleanupNATRules = void $ spawnShell "iptables -w -t nat -F POSTROUTING"
 
 addNATMasqueradeRule :: String -> IO ()
 addNATMasqueradeRule outputIf = do
-    (_, out, _) <- readProcessWithExitCode_closeFds "/usr/sbin/iptables" ["-t", "nat", "-S"] []
+    (_, out, _) <- readProcessWithExitCode_closeFds "/usr/sbin/iptables" ["-w", "-t", "nat", "-S"] []
     addIptableRulesIfMissing (lines out) masqRule
     where
         masqRule = printf "-t nat -A POSTROUTING -o %s+ -j MASQUERADE" outputIf

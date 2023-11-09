@@ -178,7 +178,7 @@ disableBridgeNetfilter = void $ do
 
 logAndExecuteIptables cmd = void $ do
     debug cmd
-    spawnShell $ "iptables " ++ cmd
+    spawnShell $ "iptables -w " ++ cmd
 
 bridgeExists :: String -> IO Bool
 bridgeExists bridge = doesDirectoryExist (sysfsnet </> bridge </> "brif")
@@ -273,7 +273,7 @@ addIptableRulesIfMissing iptablesOut iptablesArgs = do
     unless (any (match iptablesArgs) iptablesOut) $ do
         (exitCode, _,err) <- do
                      debug $ "iptables " ++ iptablesArgs
-                     readProcessWithExitCode_closeFds "iptables" (words iptablesArgs) []
+                     readProcessWithExitCode_closeFds "iptables" (["-w"] ++ words iptablesArgs) []
         case exitCode of
              ExitSuccess -> return ()
              _ -> error $ printf "cannot add rule %s : %s" iptablesArgs err
