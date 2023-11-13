@@ -150,18 +150,6 @@ configureVirtualInterface appState domid devid mac = liftIO $ void $ do
     (_, _, _, pid) <- createProcess (proc "/usr/sbin/xl" ["network-attach", "0", "type=vif", printf "mac=%s" mac, printf "backend=%s" (show domid)]){ close_fds = True }
     waitForProcess pid
 
-configureDom0IP = do
-    -- assuming that at any given time, dom0 in XT will have only one active interface
-    (exitCode, _,_) <- readProcessWithExitCode_closeFds "ifconfig" ["eth0"] []
-    case exitCode of
-	 ExitSuccess -> do debug "Configure IP address for dom0 interface"
-                           pid <- strip <$> fromMaybe "" <$> maybeGetContents udhcpcPidFile
-                           unless (null pid) $ void $ system $ "kill " ++ pid 
-			   system $ printf "udhcpc -b -i eth0 -p %s" udhcpcPidFile
-	 otherwise -> do threadDelay 1000
-			 configureDom0IP
-    where udhcpcPidFile = "/var/run/udhcpc.pid"
-  
 -- Handler for networkslave_up signal
 -- This is the first signal from the slave. Configure all the networks
 -- exported by the slave and  map the networks as network daemon networks
@@ -252,7 +240,6 @@ newBackendVif appState dbusid domid uuid path args = do
                             debug $ printf "Move %s to %s network" vif (show $ nw)
 			    --withNetworkSlave domid (NWS.comCitrixXenclientNetworkslaveMoveVifToNetwork slaveService slaveRootObj vif (nwsObj nw))
                             addVifToNetwork domid uuid (read guestDomid :: Int) vif (nwsObj nw)
-                            when ((read guestDomid :: Int32) == 0) $ void $ liftIO $ configureDom0IP 
                             syncVifState domid (read guestDomid) devid nw
 
              	          Nothing -> return ()
