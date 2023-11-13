@@ -381,11 +381,12 @@ getUsedIndices existingNws = map match (M.keys existingNws)
     where match str = let (_,index,_,_) = str=~ "[0-9]+" :: (String, String, String, [String])
                       in read index
 
-configureNetwork :: AppState -> DomainId -> String -> String -> String -> String -> Rpc ()
-configureNetwork appState domid nwObj natPrefix nwMac nwdNetwork = do
+configureNetwork :: AppState -> Uuid -> DomainId -> String -> String -> String -> String -> Rpc ()
+configureNetwork appState uuid domid nwObj natPrefix nwMac nwdNetwork = do
     isConfigured <- withNws (NC.comCitrixXenclientNetworkIsConfigured slaveService nwObj)
     connType <- withNws (NC.comCitrixXenclientNetworkConfigGetConnection slaveService nwObj)
     nwType <- withNws (NC.comCitrixXenclientNetworkConfigGetType slaveService nwObj)
+    transpBridging <- configGetNdvmTransparentBridging uuid
 
     unless (isConfigured) $ void $ do
            case () of
@@ -396,7 +397,7 @@ configureNetwork appState domid nwObj natPrefix nwMac nwdNetwork = do
                             else withNws (NC.comCitrixXenclientNetworkConfigure slaveService nwObj freeId)
                   | (connType == eCONNECTION_TYPE_BRIDGED && nwType == eNETWORK_TYPE_WIRED) -> do
                         dom0Network <- fromMaybe "" <$> getDom0Network
-                        if (dom0Network == nwdNetwork)
+                        if (dom0Network == nwdNetwork || transpBridging)
                            then withNws (NC.comCitrixXenclientNetworkConfigure slaveService nwObj (virtualMac nwMac))
                            else withNws (NC.comCitrixXenclientNetworkConfigure slaveService nwObj "")
                   | otherwise -> withNws (NC.comCitrixXenclientNetworkConfigure slaveService nwObj "")
@@ -444,7 +445,7 @@ configureSlaveNetwork appState uuid domid nwObj = do
                 label = fromMaybe "" $ getConfigProperty configStr eNW_PROP_LABEL
                 prefix = fromMaybe "" $ getConfigProperty configStr eNW_PROP_NATPREFIX
 
-            configureNetwork appState domid nwObj prefix rMac nwName
+            configureNetwork appState uuid domid nwObj prefix rMac nwName
             hideObj nwName
  
             debug $ printf "Update database with network %s" nwName 
