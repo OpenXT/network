@@ -20,9 +20,9 @@
 module Main where
 
 import Control.Applicative
-import System
+import System.Exit
 import System.IO
-import Directory
+import System.Directory
 
 import Rpc
 import Rpc.Core
@@ -33,7 +33,6 @@ import Tools.Process
 import Data.String
 import Data.Word
 import qualified Data.Map as M
-import qualified Data.Text.Lazy as TL
 import Data.Maybe
 import Data.List
 
@@ -72,7 +71,7 @@ main = do
 
 -- Start the service and the implementations
 doService appState service implementation = 
-    withSyslog "network-slave" [] USER . rpcServe "com.citrix.xenclient.networkslave" $ \rpcContext ->
+    withSyslog "network-slave" [] User . rpcServe "com.citrix.xenclient.networkslave" $ \rpcContext ->
         do 
             r <- E.try $ do
                 status <- rpc rpcContext $ runApp appState $ do 
@@ -98,7 +97,7 @@ onNotify msgname action =
       rpcOnSignal rule process
   where
     process senderName signal =
-       do let sender = TL.unpack (strBusName senderName)
+       do let sender = strBusName senderName
           domid <- orgFreedesktopDBusGetConnectionDOMID "org.freedesktop.DBus" "/org/freedesktop/DBus" sender
           maybe_uuid <- getDomainUuid domid
 

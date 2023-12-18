@@ -16,10 +16,10 @@
 -- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --
 
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 module Main where
 
-import System
+import System.Exit
 import System.IO
 import System.Posix.Syslog
 import System.Posix.Process
@@ -48,10 +48,9 @@ import Data.List (nub)
 import Data.IntSet (IntSet, (\\))
 import qualified Data.IntSet as IntSet
 import qualified Data.Map as M
-import qualified Data.Text.Lazy as TL
 import Text.Printf
 import Text.Regex.Posix
-import Directory
+import System.Directory
 
 import Control.Monad.Trans
 import Control.Monad.Error

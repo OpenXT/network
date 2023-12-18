@@ -16,6 +16,8 @@
 -- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --
 
+{-# LANGUAGE FlexibleContexts #-}
+
 module NetworkForwarding (initRtTables
                         , initUnreachRoutingTable
                         , initNATRules
@@ -36,7 +38,7 @@ module NetworkForwarding (initRtTables
 import Text.Regex.Posix
 import Text.Printf (printf)
 
-import Directory
+import System.Directory
 
 import System.FilePath.Posix
 import System.Exit
@@ -169,7 +171,7 @@ addRouteLookup ifIndex rtTable inputIf = do
 -- check if ip rule for route lookup exists
 routeLookupExists :: String -> String -> IO [Bool]
 routeLookupExists rtname inputIf = do
-    (_, rules, _) <- readProcessWithExitCode_closeFds "/bin/ip"  ["rule", "show"] []
+    (_, rules, _) <- readProcessWithExitCode_closeFds "ip"  ["rule", "show"] []
     let lookupTables = map (parseLookup inputIf) $ lines rules
 
     debug $ "lookup tables from ip rule show " ++ show lookupTables

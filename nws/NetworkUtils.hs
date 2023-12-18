@@ -16,7 +16,7 @@
 -- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --
 
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, FlexibleContexts #-}
 module NetworkUtils ( listNetworkInterfaces
                       , listPhyInterfaces
                       , isVifOrTunInterface
@@ -59,7 +59,7 @@ import Data.List
 import Text.Regex.Posix
 import Text.Printf (printf)
 
-import Directory
+import System.Directory
 
 import System.Exit
 import System.FilePath

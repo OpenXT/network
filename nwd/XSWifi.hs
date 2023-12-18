@@ -19,7 +19,6 @@
 {-# LANGUAGE NoMonomorphismRestriction, ScopedTypeVariables #-}
 module XSWifi where
 
-import System
 import System.IO
 import System.Posix.Syslog
 
@@ -41,7 +40,6 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString as B
 import qualified Data.IntSet as IntSet
 import qualified Data.Map as M
-import qualified Data.Text.Lazy as TL
 
 import Text.Printf
 import Text.Regex.Posix

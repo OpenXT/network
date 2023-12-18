@@ -20,7 +20,6 @@
 module NetworkDomain where
 
 import Control.Applicative
-import System
 import System.IO
 import System.Posix.Syslog
 import System.Posix.Process
@@ -46,10 +45,9 @@ import Data.List
 import Data.IntSet (IntSet, (\\))
 import qualified Data.IntSet as IntSet
 import qualified Data.Map as M
-import qualified Data.Text.Lazy as TL
 import Text.Printf
 import Text.Regex.Posix
-import Directory
+import System.Directory
 
 import Control.Monad.Trans
 import Control.Monad.Error
@@ -79,19 +77,19 @@ implementNetworkDomainInterface obj domid uuid = do
         , comCitrixXenclientNetworkdomainConfigGetNmState = runApp appState $ domainNmState transpBridging domid
         , comCitrixXenclientNetworkdomainPopupNetworkMenu = \x y -> runApp appState $  nmPopupApplet domid x y
         , comCitrixXenclientNetworkdomainCloseNetworkMenu = runApp appState $ nmCloseApplet domid
-	, comCitrixXenclientNetworkdomainConfigGetIsNetworkingActive  = runApp appState $ domainConnectivity transpBridging domid
+        , comCitrixXenclientNetworkdomainConfigGetIsNetworkingActive  = runApp appState $ domainConnectivity transpBridging domid
         , comCitrixXenclientNetworkdomainConfigGetUuid = return $ uuidStr uuid
         , comCitrixXenclientNetworkdomainConfigGetDomid = return $ fromIntegral domid 
         , comCitrixXenclientNetworkdomainConfigGetName = runApp appState $ liftRpc $ getVmNameFromUuid  uuid
     }
 
 matchNwsUuid uuid nwInfo = if (uuid == networkBackendUuid nwInfo)
-			      then Left nwInfo
-			      else Right nwInfo
+                  then Left nwInfo
+                  else Right nwInfo
 
 matchNwsSlaveNw slaveObj nwInfo = if (slaveObj == nwsObj nwInfo)
-			             then Left nwInfo
-			             else Right nwInfo
+                         then Left nwInfo
+                         else Right nwInfo
 
 getNetworksWithProperty matchFunc nwObjsMVar = do
     exportedNws <- liftIO $ readMVar nwObjsMVar
@@ -151,7 +149,7 @@ networkStateChanged appState task_mv dbusid domid uuid slaveNw args = do
           initialized <- checkNetworkDomainState Initialized knownSlaves uuid domid
           if (initialized == True)
              then do
-               nwMap <- exposedNwForSlaveNw appState uuid (objPathToStr slaveNw)
+               nwMap <- exposedNwForSlaveNw appState uuid (strObjectPath slaveNw)
                case (M.toList nwMap) of 
                     [(nwObj, nwInfo)] -> do mapM_ (emitStateChanged nmState (networkBackendObj uuid)) $ nub $ nwObj:(bridgedPair nwObj):[]
                                             scheduleSynchronise task_mv appState domid uuid 

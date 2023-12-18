@@ -13,7 +13,6 @@ Executable network-daemon
     time,
     deepseq,
     containers,
-    haskell98,
     process,
     unix,
     text,
@@ -30,5 +29,5 @@ Executable network-daemon
     xch-rpc,
     directory
   Main-Is: Main.hs
-  GHC-Options -O2 -fwarn-incomplete-patterns -dynamic -threaded
+  GHC-Options: -O2 -fwarn-incomplete-patterns -dynamic -threaded -rtsopts
 
